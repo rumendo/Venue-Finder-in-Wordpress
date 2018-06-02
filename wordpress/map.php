@@ -5,7 +5,7 @@
     <title>Map</title>
     <style>
       #map {
-        height: 100%;
+        height: 90%;
       }
       html, body {
         height: 100%;
@@ -16,18 +16,26 @@
   </head>
 
   <body>
+    <form>
+      <input type="radio" name="gender" value="BG" checked onClick="initMap('BG');"> Bulgaria<br>
+      <input type="radio" name="gender" value="GB" onClick="initMap('GB');"> Great Britan<br>
+      <input type="radio" name="gender" value="US" onClick="initMap('US');"> USA<br>
+    </form>
     <div id="map"></div>
     <script>
-
-        function initMap() {
+        function initMap(country) {
         var map = new google.maps.Map(document.getElementById('map'), {
           center: new google.maps.LatLng(42.650692, 23.342963),
           zoom: 2
         });
         var infoWindow = new google.maps.InfoWindow;
+        var url = 'http://localhost:3000';
+        var data = { 'country': country };
+        var querystring = encodeQueryData(data);
+        url = url.concat("/?" + querystring);
+        console.log(url);
 
-
-        downloadUrl('http://localhost:3000', function(result) {
+        downloadUrl(url, function(result) {
           //console.log(result);
           Array.prototype.forEach.call(result, function(element) {
             var id = element.id;
@@ -70,6 +78,14 @@
         xmlhttp.open("GET", url, true);
         xmlhttp.send();
       }
+
+      function encodeQueryData(data) {
+        let ret = [];
+        for (let d in data)
+         ret.push(encodeURIComponent(d) + '=' + encodeURIComponent(data[d]));
+        return ret.join('&');
+      }
+
     </script>
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBiTBKcAUdG9VYCS4wo7Og4DGHIMGnmojc&callback=initMap">

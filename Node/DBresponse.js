@@ -12,9 +12,11 @@ var con = mysql.createConnection({
 con.connect(function(err) {
   if (err) throw err;
   // Select all venues and return the result to be sent.
-  con.query("SELECT * FROM mark", function (err, result, fields) {
-    if (err) throw err;
-      app.get('/', (req, res) => res.send(result));
+    app.get('/', function(req, res) {
+      con.query('SELECT * FROM markers WHERE country = ?', [req.param('country')], function (err, result, fields) {
+        if (err) throw err;
+      res.send(result);
+      });
     });
   });
 
