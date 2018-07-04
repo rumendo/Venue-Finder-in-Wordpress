@@ -70,7 +70,7 @@ con.connect(function(err) {
           var selCity = req.param('selCity');
           console.log(selCity);
           con.query('SELECT * FROM markers WHERE city = ?', [selCity], function (err, result, fields) {
-          if (err) throw err;
+            if (err) throw err;
           res.send(result);
           });
         }else{
@@ -79,6 +79,18 @@ con.connect(function(err) {
           res.send(result);
           });
         }
+      }
+
+      if(req.param('point1') && req.param('point2')){
+        var point1 = req.param('point1').split(',');
+        var point2 = req.param('point2').split(',');
+        console.log(point1);
+        console.log(point2);
+        con.query('SELECT * FROM markers WHERE lat <= ? AND lat >= ? AND lng >= ? AND lng <= ?'
+          , [point1[0],point2[0],point1[1],point2[1]], function (err, result, fields) {
+          if (err) throw err;
+          res.send(result);
+        });
       }
     });
   });

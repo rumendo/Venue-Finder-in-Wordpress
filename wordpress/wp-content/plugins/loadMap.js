@@ -1,9 +1,8 @@
 var selCountry = 0;
 var selCity = 0;
-var lat = 42.688058;
-var lng = 23.319961;
-var zoom = 2;
-var splitLocation = 0;
+var latCenter = 42.688058;
+var lngCenter = 23.319961;
+var url;
 
 function readCC(){
   var url = 'http://localhost:3000/?load=1';
@@ -19,24 +18,29 @@ function readCities(country){
   });
 }
 
-timer3 = 0;
-function center (){
-  zoom = 12;
-  initMap();
+//timer3 = 0;
+function showArea (point1, point2){
+  url = 'http://localhost:3000/?point1=' + point1 + '&point2=' + point2;
+    initMap(url);
 }
-$("#center").on('input', function(e){
-  splitLocation = this.value.split(';');
-  lat = splitLocation[0];
-  lng = splitLocation[1];
-    if (timer3) {
-        clearTimeout(timer3);
-    }
-    timer3 = setTimeout(center, 2000);
+$("#submit").on('click', function(e){
+  point1 = $("#point1").val().split(', ');
+  point2 = $("#point2").val().split(', ');
+  // var lat1 = parseFloat(point1[0]);
+  // var lng1 = parseFloat(point1[1]);
+  // var lat2 = parseFloat(point2[0]);
+  // var lng2 = parseFloat(point2[1]);
+  // latCenter = (lat2 + lat1)/2;
+  // lngCenter = (lng2 + lng1)/2;
+  showArea(point1, point2);
+//     if (timer3) {
+//         clearTimeout(timer3);
+//     }
+//     timer3 = setTimeout(showArea, 2000);
 });
 
 timer2 = 0;
 function selectCountry (){
-  zoom = 2;
   readCities(selCountry);
 }
 $("#CC").on('input', function(e){
@@ -48,17 +52,13 @@ $("#CC").on('input', function(e){
 });
 
 timer = 0;
-function selectCity (){
-  zoom = 2;
-  initMap();
-}
 $("#cities").on('input', function(e){
   selCity = this.value;
   console.log(selCity);
     if (timer) {
         clearTimeout(timer);
     }
-    timer = setTimeout(selectCity, 500);
+    timer = setTimeout(initMap, 500);
 });
 
 function displayCC(result){
@@ -78,16 +78,18 @@ function displayCities(result){
 }
 
 
-function initMap() {
+function initMap(url) {
   var map = new google.maps.Map(document.getElementById('map'), {
-    center: new google.maps.LatLng(lat, lng),
-    zoom: zoom
+    center: new google.maps.LatLng(latCenter, lngCenter),
+    zoom: 2
   });
   var infoWindow = new google.maps.InfoWindow;
-  var url = 'http://localhost:3000';
-  var data = { 'selCountry': selCountry, 'selCity': selCity};
-  var querystring = encodeQueryData(data);
-  url = url.concat("/?" + querystring);
+  if(!url){
+    var url = 'http://localhost:3000';
+    var data = { 'selCountry': selCountry, 'selCity': selCity};
+    var querystring = encodeQueryData(data);
+    url = url.concat("/?" + querystring);
+  }
   console.log(url);
 
   downloadUrl(url, function(result) {
