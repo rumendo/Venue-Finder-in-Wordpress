@@ -1,6 +1,17 @@
 const mysql = require('mysql');
 const express = require('express');
+const fs = require('fs');
 const app = express();
+
+var countryList = [];
+var linesArray = fs.readFileSync('countryCodes.txt', 'utf-8');
+linesArray = linesArray.split('\n');
+var n=0;
+Array.prototype.forEach.call(linesArray, function(line){
+  newLine = line.split(/[ ]{2,}/);
+  countryList[n] = newLine;
+  n++;
+});
 
 var con = mysql.createConnection({
   host: "localhost",
@@ -19,8 +30,14 @@ con.connect(function(err) {
         countries = [];
         i=0;
         Array.prototype.forEach.call(result, function(element){
-          countries[i] = element.country;
-          i++;
+          n=0;
+          Array.prototype.forEach.call(countryList, function(country){
+            if(element.country==country[1]){
+              countries[i] = countryList[n][0];
+              i++;
+            }
+            n++;
+          });
         });
         countries.sort();
         res.send(countries);
@@ -28,7 +45,13 @@ con.connect(function(err) {
       }
 
       if(req.param('country')){
-        con.query('SELECT DISTINCT city FROM markers WHERE country = ?', [req.param('country')], function (err, result, fields) {
+        var selectedCountry = '';
+        Array.prototype.forEach.call(countryList, function(country){
+          if(req.param('country')==country[0]){
+            selectedCountry = country[1];
+          }
+        });
+        con.query('SELECT DISTINCT city FROM markers WHERE country = ?', [selectedCountry], function (err, result, fields) {
           if (err) throw err;
         cities = [];
         i=0;
@@ -40,7 +63,7 @@ con.connect(function(err) {
         res.send(cities);
         });
       }
-      
+
       if(req.param('selCountry')){
         if(req.param('selCity')){
           var selCountry = req.param('selCountry');
