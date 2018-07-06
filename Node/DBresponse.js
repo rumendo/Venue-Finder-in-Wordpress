@@ -81,14 +81,19 @@ con.connect(function(err) {
         }
       }
 
-      if(req.param('point1') && req.param('point2')){
-        var point1 = req.param('point1').split(',');
-        var point2 = req.param('point2').split(',');
-        console.log(point1);
-        console.log(point2);
+      if(req.param('point1x') && req.param('point1y') && req.param('point2x') && req.param('point2y')){
+        var point1x = req.param('point1x');
+        var point1y = req.param('point1y');
+        var point2x = req.param('point2x');
+        var point2y = req.param('point2y');
+        console.log(point1x);
+        console.log(point2x);
+        console.log(point1y);
+        console.log(point2y);
         con.query('SELECT * FROM markers WHERE lat <= ? AND lat >= ? AND lng >= ? AND lng <= ?'
-          , [point1[0],point2[0],point1[1],point2[1]], function (err, result, fields) {
+          , [point1x,point2x,point1y,point2y], function (err, result, fields) {
           if (err) throw err;
+          console.log(result);
           res.send(result);
         });
       }
