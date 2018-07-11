@@ -13,6 +13,16 @@ Array.prototype.forEach.call(linesArray, function(line){
   n++;
 });
 
+function nameToCC(selCountry){
+  var selectedCountry = '';
+  Array.prototype.forEach.call(countryList, function(country){
+    if(selCountry==country[0]){
+      selectedCountry = country[1];
+    }
+  });
+  return selectedCountry;
+}
+
 var con = mysql.createConnection({
   host: "localhost",
   user: "wordpressuser",
@@ -20,10 +30,14 @@ var con = mysql.createConnection({
   database: "wordpress"
 });
 
+
 con.connect(function(err) {
   if (err) throw err;
   // Select all venues and return the result to be sent.
     app.get('/', function(req, res) {
+
+      var query = 'SELECT * FROM markers WHERE 1';
+
       if(req.param('load')){
         con.query('SELECT DISTINCT country FROM markers', function (err, result, fields) {
           if (err) throw err;
@@ -44,14 +58,15 @@ con.connect(function(err) {
         });
       }
 
-      if(req.param('country')){
-        var selectedCountry = '';
-        Array.prototype.forEach.call(countryList, function(country){
-          if(req.param('country')==country[0]){
-            selectedCountry = country[1];
-          }
+      if(req.param('loadAll')){
+        con.query('SELECT * FROM markers', function (err, result, fields) {
+          if (err) throw err;
+          res.send(result);
         });
-        con.query('SELECT DISTINCT city FROM markers WHERE country = ?', [selectedCountry], function (err, result, fields) {
+      }
+
+      if(req.param('country')){
+        con.query('SELECT DISTINCT city FROM markers WHERE country = ?', [nameToCC(req.param('country'))], function (err, result, fields) {
           if (err) throw err;
         cities = [];
         i=0;
@@ -65,36 +80,21 @@ con.connect(function(err) {
       }
 
       if(req.param('selCountry')){
-        if(req.param('selCity')){
-          var selCountry = req.param('selCountry');
-          var selCity = req.param('selCity');
-          console.log(selCity);
-          con.query('SELECT * FROM markers WHERE city = ?', [selCity], function (err, result, fields) {
-            if (err) throw err;
-          res.send(result);
-          });
-        }else{
-          con.query('SELECT * FROM markers WHERE country = ?', [req.param('selCountry')], function (err, result, fields) {
-          if (err) throw err;
-          res.send(result);
-          });
-        }
+        query += " && country = '" + nameToCC(req.param('selCountry')) + "'";
+        console.log(query);
       }
-
+      if(req.param('selCity')){
+        query += "&& city = '" + [req.param('selCity')] + "'";
+        console.log(query);
+      }
       if(req.param('point1x') && req.param('point1y') && req.param('point2x') && req.param('point2y')){
-        var point1x = req.param('point1x');
-        var point1y = req.param('point1y');
-        var point2x = req.param('point2x');
-        var point2y = req.param('point2y');
-        console.log(point1x);
-        console.log(point2x);
-        console.log(point1y);
-        console.log(point2y);
-        con.query('SELECT * FROM markers WHERE lat <= ? AND lat >= ? AND lng >= ? AND lng <= ?'
-          , [point1x,point2x,point1y,point2y], function (err, result, fields) {
+        query += '&& lat <= ' + req.param('point1x') + '&& lat >= ' + req.param('point2x') + '&& lng >= ' + req.param('point1y')+ '&& lng <= ' + req.param('point2y');
+        console.log(query);
+      }
+      if(req.param('selCountry') || req.param('selCity') || (req.param('point1x') && req.param('point1y') && req.param('point2x') && req.param('point2y'))){
+        con.query(query, function (err, result, fields) {
           if (err) throw err;
-          console.log(result);
-          res.send(result);
+        res.send(result);
         });
       }
     });
